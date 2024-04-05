@@ -14,14 +14,14 @@ const employeeSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true,
   },
   status: {
     type: String,
     required: true
   },
   email: {
-    type: String
+    type: String,
+    required: true
   },
   address: {
     type: String
@@ -31,6 +31,11 @@ const employeeSchema = new mongoose.Schema({
   },
   note: {
     type: String
+  },
+  owner:{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Owner',
+    required: true
   },
   role: {
     type: mongoose.Schema.ObjectId,
