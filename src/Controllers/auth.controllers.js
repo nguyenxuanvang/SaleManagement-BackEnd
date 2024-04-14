@@ -4,21 +4,21 @@ const jwt = require("jsonwebtoken");
 const Owner = require("../Models/owner.model");
 const Employee = require("../Models/employee.model");
 
-const register = async (req,res) => {
+const Catching = require('../Helpers/Catching');
+const AppError = require('../Helpers/AppError');
 
-  try {
+const register = Catching(async (req,res,next) => {
+
 
     const {body: info} = req;
 
     const findOwner = await Owner.findOne({user_name: info.user_name});
 
     if(findOwner) {
-      return res.status(409).json({
-        status: 'fail',
-        message: 'User Name Has Exist !'
-      })
+      next(new AppError('User Name Has Exist !', 409));
+      return;
     }
-
+    
     const hash = bcrypt.hashSync(info.password, bcrypt.genSaltSync(10));
 
     await Owner.create({
@@ -35,16 +35,9 @@ const register = async (req,res) => {
       status: 'success',
       message: 'Register Successfully !'
     });
+});
 
-  } catch(e) {
-    return res.status(500).json({
-      status: 'error',
-      message: e
-    });
-  }
-}
-const login = async (req,res) => {
-  try {
+const login = Catching(async (req,res,next) => {
 
     const {body: info} = req;
 
@@ -62,17 +55,23 @@ const login = async (req,res) => {
           process.env.JWT_Key,
           { expiresIn: 3 * 30 * 24 * 60 * 60 }
         );
-        return res.status(200).json({
-          status: 'success',
+        return res.status(200)
+        .cookie(
+          'accessToken',
           accessToken,
+          {
+            expires: new Date(Date.now() + 3*24*60*60*1000),
+            httpOnly: true
+          }
+        )
+        .json({
+          status: 'success',
           message: 'Login Successfully !'
         });
       }
 
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Wrong User Name or Password !'
-      })
+      next(new AppError('Wrong User Name or Password !', 401));
+      return;
 
     }
     const findEmployee = await Employee.findOne({user_name: info.user_name});
@@ -91,31 +90,46 @@ const login = async (req,res) => {
           { expiresIn: 3 * 30 * 24 * 60 * 60 }
         );
 
-        return res.status(200).json({
-          status: 'success',
+        return res.status(200)
+        .cookie(
+          'accessToken',
           accessToken,
+          {
+            expires: new Date(Date.now() + 3*24*60*60*1000),
+            httpOnly: true
+          }
+        )
+        .json({
+          status: 'success',
           message: 'Login Successfully !'
         });
       }
 
-      return res.status(401).json({
-        status: 'fail',
-        message: 'Wrong User Name or Password !'
-      })
+      next(new AppError('Wrong User Name or Password !', 401));
+      return;
 
     }
-    return res.status(401).json({
-      status: 'fail',
-      message: 'Wrong User Name or Password !'
+
+    next(new AppError('Wrong User Name or Password !', 401));
+    return;
+
+});
+
+const deleteToken = Catching(async(req,res,next) => {  
+  return res
+  .status(200)
+  .cookie(
+    'accessToken',
+    '',
+    {
+    expires: new Date(0),
+    httpOnly: true
     })
-  } catch(e) {
-    return res.status(500).json({
-      status: 'error',
-      message: e
-    });
-  }
-}
+    .json('Logout Successfully!');
+});
+
 module.exports = {
   register,
-  login
+  login,
+  deleteToken
 }

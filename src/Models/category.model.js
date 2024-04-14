@@ -4,6 +4,11 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  owner:{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Owner',
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now()
@@ -12,6 +17,8 @@ const categorySchema = new mongoose.Schema({
     type: Date
   }
 });
+
+
 categorySchema.pre('save', function (next) {
   if(!this.$isNew) {
     this.updatedAt = Date.now();

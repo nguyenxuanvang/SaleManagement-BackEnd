@@ -31,6 +31,11 @@ const productSchema = new mongoose.Schema({
     ref: 'Category',
     required: true
   },
+  owner:{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Owner',
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now()
@@ -39,6 +44,7 @@ const productSchema = new mongoose.Schema({
     type: Date
   }
 });
+
 productSchema.pre('save', function (next) {
   if(!this.$isNew) {
     this.updatedAt = Date.now();
