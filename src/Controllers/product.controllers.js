@@ -28,18 +28,19 @@ const getProducts = Catching(async(req,res,next)=>{
   }
   const limit = 5;
   const skip = (Number(page) - 1) * limit;
-  let findProducts = await Product.find({owner: req.user._id}).populate('category');
+  const queryObj = {owner: req.user._id, product_name: new RegExp(search, 'i')};
   if(categoryId) {
-    findProducts = findProducts.filter(item => String(item.category._id) === categoryId);
+    queryObj.category = categoryId;
   }
-  if(search) {
-    findProducts = findProducts.filter(item => item.product_name.toLowerCase().includes(search.trim().toLowerCase()));
-  }
-  const products = findProducts.slice(skip,limit);
+  let findProducts = await Product
+  .find(queryObj)
+  .populate('category')
+  .skip(skip)
+  .limit(limit);
 
   return res.status(200).json({
     status: 'success',
-    data: products
+    data: findProducts
   })
 })
 module.exports = {
