@@ -22,7 +22,7 @@ const corsOptions = {
   }
 }
 app.use(cors(corsOptions));
-
+app.use(express.static('src/images'));
 app.use('/auth',authRouter);
 app.use('/personal',personalRouter);
 app.use('/category',categoryRouter);
