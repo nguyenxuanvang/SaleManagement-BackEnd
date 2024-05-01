@@ -87,25 +87,23 @@ const updateProduct = Catching(async (req,res,next)=>{
   product.unit = unit;
   if(req.fileName) {
     if(image_url !== 'default.png') {
-      const listImage = fs.readdirSync(path.join(__dirname, '../images'));
-      const findImage = listImage.find(item => item === image_url);
-      fs.unlinkSync(path.join(__dirname,`../images/${findImage}`));
+      await fs.promises.unlink(path.join(__dirname,`../images/${product.image_url}`));
       product.image_url = req.fileName;
     } else {
       product.image_url = req.fileName;
     }
   }
   await product.save();
-  
+  const result = await Product.findOne({_id}).populate('category');
   return res.status(200).json({
     status: 'success',
-    data: product,
+    data: result, 
     message: 'Update Product Successfully!'
   })
 });
 
 const deleteProduct = Catching(async(req,res,next)=>{
-  const {maHang: _id} = req.body;
+  const {id: _id} = req.body;
   const deleteProduct = await Product.findOne({_id});
   if(!deleteProduct) {
     next(new AppError('Product Has Not Exist !', 404));
@@ -113,9 +111,7 @@ const deleteProduct = Catching(async(req,res,next)=>{
   }
   await Product.deleteOne({_id});
   if(deleteProduct.image_url !== 'default.png') {
-    const listImage = fs.readdirSync(path.join(__dirname, '../images'));
-    const findImage = listImage.find(item => item === deleteProduct.image_url);
-    fs.unlinkSync(path.join(__dirname,`../images/${findImage}`));
+    await fs.promises.unlink(path.join(__dirname,`../images/${deleteProduct.image_url}`));
   }
   return res.status(200).json({
     status: 'success',
