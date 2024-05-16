@@ -6,6 +6,7 @@ const Employee = require("../Models/employee.model");
 
 const Catching = require('../Helpers/Catching');
 const AppError = require('../Helpers/AppError');
+const Role = require("../Models/role.model");
 
 const register = Catching(async (req,res,next) => {
 
@@ -116,6 +117,10 @@ const login = Catching(async (req,res,next) => {
 });
 
 const deleteToken = Catching(async(req,res,next) => {  
+  // await Role.create({
+  //   role_name: 'Employee'
+  // });
+  // return res.json('hehehe')
   return res
   .status(200)
   .cookie(
