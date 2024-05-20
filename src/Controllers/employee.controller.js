@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const {validationResult } = require('express-validator');
 const AppError = require("../Helpers/AppError");
 const Catching = require("../Helpers/Catching");
 const Role = require ("../Models/role.model");
@@ -30,9 +31,10 @@ const getEmployees = Catching(async(req,res,next)=>{
 })
 const createEmployee = Catching(async(req,res,next) => {
   const {body: info} = req;
-  if(info.name.trim()==='' || info.user_name.trim()==='' || info.password.trim()==='' || info.role.trim()==='' || info.email.trim()==='') {
-    next(new AppError('Data Input Invalid !', 400));
-      return;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new AppError('Data Input Invalid', 400, errors.array()));
+    return;
   }
   const findOwner = await Owner.findOne({user_name: info.user_name});
   if(findOwner) {
@@ -68,9 +70,10 @@ const createEmployee = Catching(async(req,res,next) => {
 })
 const updateEmployee = Catching(async(req,res,next)=>{
   const {body: info} = req;
-  if(info.name.trim()==='' || info.user_name.trim()==='' || info.password.trim()==='' || info.role.trim()==='' || info.email.trim()==='') {
-    next(new AppError('Data Input Invalid !', 400));
-      return;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    next(new AppError('Data Input Invalid', 400, errors.array()));
+    return;
   }
   const findOwner = await Owner.findOne({user_name: info.user_name});
   if(findOwner) {

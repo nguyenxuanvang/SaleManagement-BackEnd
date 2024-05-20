@@ -1,4 +1,5 @@
 const fs = require('fs');
+const {validationResult } = require('express-validator');
 const path = require('path');
 const multer  = require('multer');
 const Catching = require('../Helpers/Catching');
@@ -20,8 +21,16 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const createProduct = Catching(async (req,res,next) => {
-  const {body} = req;
-  const info = JSON.parse(body.product);
+  req.body.product = JSON.parse(req.body.product);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    if(req.file) {
+      await fs.promises.unlink(path.join(__dirname,`../images/${req.fileName}`));
+    }
+    next(new AppError('Data Input Invalid', 400, errors.array()));
+    return;
+  }
+  const info = req.body.product;
   let image_url = 'default.png';
   if(req.file) {
     image_url = req.fileName;
@@ -67,7 +76,15 @@ const getProducts = Catching(async(req,res,next)=>{
 });
 
 const updateProduct = Catching(async (req,res,next)=>{
-  const info = JSON.parse(req.body.product);
+  req.body.product = JSON.parse(req.body.product);
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    if(req.file) {
+      await fs.promises.unlink(path.join(__dirname,`../images/${req.fileName}`));
+    }
+    next(new AppError('Data Input Invalid', 400, errors.array()));
+    return;
+  }
   const {
     cost_price,
     product_name,
@@ -77,8 +94,12 @@ const updateProduct = Catching(async (req,res,next)=>{
     unit,
     _id,
     image_url
-  } = info;
+  } = req.body.product;
   const product = await Product.findOne({_id});
+  if(!product) {
+    next(new AppError('Product Is Not Found !',400));
+    return;
+  }
   product.product_name = product_name;
   product.cost_price = cost_price;
   product.sale_price = sale_price;
