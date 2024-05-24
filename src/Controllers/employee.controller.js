@@ -5,6 +5,7 @@ const Catching = require("../Helpers/Catching");
 const Role = require ("../Models/role.model");
 const Owner = require("../Models/owner.model");
 const Employee = require("../Models/employee.model");
+
 const getRoles = Catching(async (req,res,next) => {
   const roles = await Role.find({});
   return res.status(200).json({
@@ -12,6 +13,7 @@ const getRoles = Catching(async (req,res,next) => {
     data: roles
   }) 
 });
+
 const getEmployees = Catching(async(req,res,next)=>{
   let {search,page} = req.query;
   if(!page) {
@@ -23,12 +25,13 @@ const getEmployees = Catching(async(req,res,next)=>{
     owner: req.user._id,
     name: new RegExp(search, 'i')
   }
-  const employees = await Employee.find(queryObj).populate('role').skip(skip).limit(limit);
+  const employees = await Employee.find(queryObj).populate('role').skip(skip).limit(limit).sort({createdAt: -1});
   return res.status(200).json({
     status: 'success',
     data: employees
   })
-})
+});
+
 const createEmployee = Catching(async(req,res,next) => {
   const {body: info} = req;
   const errors = validationResult(req);
@@ -67,7 +70,8 @@ const createEmployee = Catching(async(req,res,next) => {
     message: 'Add Employee Successfully!',
     data: result
   })
-})
+});
+
 const updateEmployee = Catching(async(req,res,next)=>{
   const {body: info} = req;
   const errors = validationResult(req);
@@ -85,11 +89,13 @@ const updateEmployee = Catching(async(req,res,next)=>{
     next(new AppError('User Name Has Exist !', 400));
     return;
   }
-  const hash = bcrypt.hashSync(info.password, bcrypt.genSaltSync(10));
   const findRole = await Role.findOne({role_name: info.role});
   const updateEmployee = await Employee.findOne({_id: info._id}).populate('role');
     updateEmployee.user_name = info.user_name;
-    updateEmployee.password = hash;
+    if(info.password) {
+      const hash = bcrypt.hashSync(info.password, bcrypt.genSaltSync(10));
+      updateEmployee.password = hash;
+    }
     updateEmployee.name = info.name;
     updateEmployee.role = findRole;
     updateEmployee.email = info.email;
@@ -107,6 +113,7 @@ const updateEmployee = Catching(async(req,res,next)=>{
     data: updateEmployee
   })
 });
+
 const deleteEmployee = Catching(async(req,res,next) => {
   const {id} = req.params;
   const findEmployee = await Employee.findById(id);
@@ -119,7 +126,8 @@ const deleteEmployee = Catching(async(req,res,next) => {
     status: 'success',
     message: 'Delete SuccessFully !'
   })
-})
+});
+
 module.exports = {
   getRoles,
   createEmployee,

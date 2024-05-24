@@ -32,7 +32,6 @@ employeeRouter
     [
       body('name').notEmpty(),
       body('user_name').notEmpty(),
-      body('password').notEmpty(),
       body('role').notEmpty(),
       body('email').notEmpty(),
       body('status').notEmpty()
