@@ -1,22 +1,24 @@
 const mongoose = require('mongoose');
-const orderSchema = new mongoose.Schema({
-  total_quantity: {
+const importDetailSchema = new mongoose.Schema({
+  quantity: {
     type: Number,
     required: true,
     min: 0
   },
-  total_price: {
+  price: {
     type: Number,
     required: true,
     min: 0
   },
-  employee: {
+  import: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Employee',
+    ref: 'Import',
     required: true
   },
-  note: {
-    type: String,
+  product: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Product',
+    required: true
   },
   createdAt: {
     type: Date,
@@ -26,11 +28,11 @@ const orderSchema = new mongoose.Schema({
     type: Date
   }
 });
-orderSchema.pre('save', function (next) {
+importDetailSchema.pre('save', function (next) {
   if(!this.$isNew) {
     this.updatedAt = Date.now();
   }
   next();
 });
-const Order = mongoose.model('Order',orderSchema);
-module.exports = Order;
+const ImportDetail = mongoose.model('ImportDetail',importDetailSchema);
+module.exports = ImportDetail;
