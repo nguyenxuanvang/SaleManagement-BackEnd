@@ -6,6 +6,7 @@ const personalRouter = require('./src/Routes/personal.routes');
 const categoryRouter = require('./src/Routes/category.routes');
 const productRouter = require('./src/Routes/product.routes');
 const employeeRouter = require('./src/Routes/employee.routes');
+const importRouter = require('./src/Routes/import.routes');
 const AppError = require('./src/Helpers/AppError');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/personal',personalRouter);
 app.use('/category',categoryRouter);
 app.use('/product',productRouter);
 app.use('/employee',employeeRouter);
+app.use('/import',importRouter);
 app.get('/',(req,res,next) => {
   return res.json('hello');
 });

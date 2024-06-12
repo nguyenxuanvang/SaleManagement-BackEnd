@@ -16,13 +16,14 @@ const createCategory = Catching(async(req,res,next) => {
 
   const {category_name} = req.body;
 
-  await Category.create({
+  const newCategory = await Category.create({
     category_name: category_name,
     owner: req.user._id
   });
 
   return res.status(200).json({
     status: 'success',
+    data: newCategory,
     message: 'Create Category Successfully!'
   })
 })
