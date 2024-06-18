@@ -13,7 +13,10 @@ const orderSchema = new mongoose.Schema({
   employee: {
     type: mongoose.Schema.ObjectId,
     ref: 'Employee',
-    required: true
+  },
+  owner: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Owner'
   },
   note: {
     type: String,
