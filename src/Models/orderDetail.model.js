@@ -20,6 +20,14 @@ const orderDetailSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
+  product_name: {
+    type: String,
+    require: true
+  },
+  image_url: {
+    type: String,
+    require: true
+  },
   createdAt: {
     type: Date,
     default: Date.now()

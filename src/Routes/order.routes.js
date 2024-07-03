@@ -1,18 +1,24 @@
 const express = require("express");
 const {body} = require('express-validator');
 const AuthenticateJWT = require('../Middlewares/Authenticate');
-const {orderProducts} = require('../Controllers/order.controllers');
+const {getOrders,getOrderDetails,deleteOrder} = require('../Controllers/order.controllers');
 
 const orderRouter = express.Router();
 orderRouter
   .route('/')
-  .post(
+  .get(
     AuthenticateJWT,
-    [
-      body('totalQuantity').notEmpty().isInt({min:1}),
-      body('totalPrice').notEmpty().isInt({min:1}),
-    ],
-    orderProducts
+    getOrders
+  )
+  .delete(
+    AuthenticateJWT,
+    deleteOrder
+  )
+orderRouter
+  .route('/:id')
+  .get(
+    AuthenticateJWT,
+    getOrderDetails
   )
   
 module.exports = orderRouter;

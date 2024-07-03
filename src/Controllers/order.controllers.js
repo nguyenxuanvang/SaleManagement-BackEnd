@@ -1,38 +1,76 @@
 const {validationResult } = require('express-validator');
+const fs = require('fs');
+const path = require('path');
 const Catching = require('../Helpers/Catching');
 const AppError = require('../Helpers/AppError');
 const Product = require('../Models/product.model');
 const Order = require('../Models/order.model');
 const OrderDetail = require('../Models/orderDetail.model');
-const orderProducts = Catching(async(req,res,next) => {
-  const {cart,totalQuantity,totalPrice,note} = req.body;
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    next(new AppError('Data Input Invalid', 400, errors.array()));
-    return;
+const getOrders = Catching(async(req,res,next) => {
+  let {search,filter,page} = req.query;
+  if(!page) {
+    page = 1;
   }
-  const newOrder = await Order.create({
-    total_quantity: totalQuantity,
-    total_price: totalPrice,
-    [(req.user.owner) ? 'employee' : 'owner']: req.user._id,
-    note,
-  })
-  cart.forEach(async(item) => {
-    await OrderDetail.create({
-      quantity: item.quantityP,
-      price: item.tongTien,
-      order: newOrder._id,
-      product: item._id
-    });
-    const findProduct = await Product.findById(item._id);
-    findProduct.quantity -= item.quantityP;
-    await findProduct.save();
-  })
+  const limit = 5;
+  const skip = (Number(page) - 1) * limit;
+  const queryObj = {owner: req.user._id};
+  if(search) {
+    const date = new Date(search);
+    date.setHours(date.getHours()-7);
+    const newDate = new Date(date);
+    newDate.setDate(newDate.getDate()+1);
+    queryObj.createdAt = {
+      $gte: date,
+      $lte: newDate
+    }
+  }
+  const orders = await Order
+  .find(queryObj)
+  .sort({createdAt: (filter!=='Oldest') ? -1 : 1})
+  .skip(skip)
+  .limit(limit);
   return res.status(200).json({
     status: 'success',
-    message: 'Order Product Successfully !'
+    data: orders
+  })
+});
+const getOrderDetails = Catching(async(req,res,next) => {
+  const {id} = req.params;
+  const orderDetails = await OrderDetail.find({
+    order: id
+  });
+  return res.status(200).json({
+    status: 'success',
+    data: orderDetails
+  })
+});
+const deleteOrder = Catching(async(req,res,next)=>{
+  const {id,page} = req.body;
+  const limit = 5;
+  const skip = (Number(page) - 1) * limit;
+  const orderDetails = await OrderDetail.find({
+    order: id
+  });
+  orderDetails.forEach(async(item)=>{
+    await fs.promises.unlink(path.join(__dirname,`../order-images/${item.image_url}`));
+  });
+  await OrderDetail.deleteMany({
+    order: id
+  });
+  await Order.deleteOne({
+    _id: id
+  });
+  const orders = await Order.find({
+    owner: req.user._id
+  }).sort({createdAt: -1}).skip(skip).limit(limit);
+  return res.status(200).json({
+    status: 'success',
+    data: orders,
+    message: 'Delete Order Successfully !'
   })
 })
 module.exports = {
-  orderProducts
+  getOrders,
+  getOrderDetails,
+  deleteOrder
 }
